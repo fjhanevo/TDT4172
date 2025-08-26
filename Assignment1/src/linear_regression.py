@@ -32,8 +32,8 @@ class LinearRegression():
             # Calculate predictions
             y_pred = X @ self.w + self.b 
 
-            dJ_dw = (-2/n_samples) * X.T @ (y_pred - y) # differentiate wrt w
-            dJ_db = (-2/n_samples) * np.sum(y_pred - y) # differenitate wrt b
+            dJ_dw = (-2./n_samples) * X.T @ (y - y_pred) # differentiate wrt w
+            dJ_db = (-2./n_samples) * np.sum(y - y_pred) # differenitate wrt b
 
             # update params
             self.w -= self.learning_rate * dJ_dw
