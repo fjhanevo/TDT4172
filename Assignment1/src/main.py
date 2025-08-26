@@ -16,14 +16,12 @@ def main():
 
     # linear regression
     lr = LinearRegression()
-    lr.fit(X,y)
+    lr.fit(X, y)
     y_pred = lr.predict(X)
-
 
     plt.figure(figsize=(6,4))
     plt.scatter(X, y, c='blue', label='Data points')
     plt.plot([min(X), max(X)], [min(y_pred), max(y_pred)], c='red', label='Linear fit')
-    # plt.plot(X, y_pred)
     plt.grid(True)
     plt.xlabel('Network Activity', fontsize=14)
     plt.ylabel('Energy', fontsize=14)
