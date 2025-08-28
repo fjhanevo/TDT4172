@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import gaussian_kde
 
 class LinearRegression():
 
@@ -11,9 +13,9 @@ class LinearRegression():
     def fit(self, X, y):
         """
         Estimates parameters (w, b) for the classifier.
-        Uses the following equation (MSE)
+        Uses the following cost equation:
 
-        J(m,b) = 1/n * sum(y - (w*X + b))^2 for i < n
+            J(m,b) = 1/n * sum(y - (w*X + b))^2 for i < n
 
         Args: 
             X (array<m,n>): a matrix of floats with
@@ -40,5 +42,41 @@ class LinearRegression():
             self.b -= self.learning_rate * dJ_db
 
     def predict(self, X):
-        return X @ self.w + self.b
+        """
+        Generates predictions
 
+        Note: should be called after .fit()
+
+        Args: 
+            X (array<m,n>): a matrix of floats with
+            m rows (#samples) and n columns (#features)
+
+        Returns: 
+            A length m array of floats
+        """
+        return X @ self.w + self.b
+   
+    def plot_prediction_error_dist(self, X, y):
+        """
+        Plots the Probability Density Function (PDF) of the prediction error dist.
+
+        Should be called after .fit()
+        """
+        y_pred = self.predict(X)
+
+        errors = (y - y_pred).flatten()
+
+        # Calculate PDF using Gaussian kernel density estimation
+        kde = gaussian_kde(errors, bw_method=0.5)
+        error_range = np.linspace(min(errors), max(errors), 100)
+        pdf = kde(error_range)
+
+        plt.plot(error_range, pdf, color='red')
+        plt.title("PDF of Prediction Erorrs")
+        plt.xlabel("Error")
+        plt.ylabel("Density")
+        plt.show()
+
+
+
+        
