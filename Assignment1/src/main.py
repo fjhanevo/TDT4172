@@ -49,43 +49,19 @@ def mission2():
 
 
     # training 
-    train_epochs = 30
-    learning_rate = 0.1
-    ### Output BEFORE scaling the data ### 
-
-    lr0 = LogisticRegression(learning_rate=learning_rate, epochs=train_epochs)
-
-    lr0.fit(X_train, y_train)
-    y_pred0 = lr0.predict(X_test)
-    print("Accuracy before scaling:", accuracy(y_test, y_pred0))
-    ###
-
-    ### Output AFTER scaling the data ### 
-    mm_scaler = MinMaxScaler()
-    X_train_scaled = mm_scaler.fit_transform(X_train)
-    X_test_scaled = mm_scaler.transform(X_test)
-
-    lr1 = LogisticRegression(learning_rate=learning_rate, epochs=train_epochs)
-    lr1.fit(X_train_scaled, y_train)
-    y_pred1 = lr1.predict(X_test_scaled)
-    print("Accuracy after scaling:", accuracy(y_test, y_pred1))
+    train_epochs = 150
+    learning_rate = 0.08
 
     ### Output after Poly feat.
-    poly = PolynomialFeatures(degree=2)
+    poly = PolynomialFeatures(degree=3)
     X_train_poly = poly.fit_transform(X_train)
     X_test_poly = poly.transform(X_test)
 
-    lr2 = LogisticRegression(learning_rate=learning_rate, epochs=train_epochs)
+    lr = LogisticRegression(learning_rate=learning_rate, epochs=train_epochs)
 
-    lr2.fit(X_train_poly, y_train)
-    y_pred2 = lr2.predict(X_test_poly)
-    print("Accuracy after poly:", accuracy(y_test, y_pred2))
-
-    """
-    Conclusion: 
-    Logisitic regression can not handle this dataset
-    """
-
+    lr.fit(X_train_poly, y_train)
+    y_pred = lr.predict(X_test_poly)
+    print("Accuracy:", accuracy(y_test, y_pred))
 
 def main():
     # mission1()    
