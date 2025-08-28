@@ -76,7 +76,3 @@ class LinearRegression():
         plt.xlabel("Error")
         plt.ylabel("Density")
         plt.show()
-
-
-
-        
