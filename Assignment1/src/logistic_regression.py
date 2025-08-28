@@ -2,6 +2,9 @@ import numpy as np
 
 from linear_regression import LinearRegression
 
+def accuracy(y, y_pred):
+    return np.mean(y == y_pred)
+
 class LogisticRegression(LinearRegression):
 
     def __init__(self, learning_rate=0.0001, epochs=1000):
@@ -43,9 +46,6 @@ class LogisticRegression(LinearRegression):
         y_one_loss = (1-y) * np.log(1 - y_pred + 1e-9)
         return - np.mean(y_zero_loss + y_one_loss)
 
-    @staticmethod
-    def _accuracy(y, y_pred):
-        return np.mean(y == y_pred)
 
     def fit(self, X, y):
         """
@@ -71,7 +71,7 @@ class LogisticRegression(LinearRegression):
             dw, db = self._compute_gradients(X, y, y_pred)
             pred_to_class = [1 if _y > 0.5 else 0 for _y in y_pred]
 
-            self.train_accuracies.append(self._accuracy(y, pred_to_class))
+            self.train_accuracies.append(accuracy(y, pred_to_class))
             self.losses.append(loss)
 
             # update params
@@ -93,7 +93,7 @@ class LogisticRegression(LinearRegression):
             A length m array of floats
 
         """
-        x_weights =  X @ self.w.T + self.b
+        x_weights =  X @ self.w + self.b
         prob = np.array([self._sigmoid(val) for val in x_weights])
         return [1 if p > 0.5 else 0 for p in prob]
 
