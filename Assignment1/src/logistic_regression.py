@@ -7,7 +7,7 @@ def accuracy(y, y_pred):
 
 class LogisticRegression(LinearRegression):
 
-    def __init__(self, learning_rate=0.0001, epochs=1000):
+    def __init__(self, learning_rate=0.1, epochs=1000):
         super().__init__(learning_rate, epochs)
         self.losses = []
         self.train_accuracies = []
@@ -17,12 +17,9 @@ class LogisticRegression(LinearRegression):
         """
         Sigmoid function 
         """
-        if x >= 0:
-            z = np.exp(-x)
-            return 1 / (1+z)
-        else: 
-            z = np.exp(x)
-            return z / (1 + z)
+        return np.where(x >= 0,
+                        1 / (1 + np.exp(-x)),
+                        np.exp(x) / (1+np.exp(x)))
 
     def _compute_gradients(self, X, y, y_pred):
         """
@@ -64,12 +61,13 @@ class LogisticRegression(LinearRegression):
 
         # gradient descent loop
         for _ in range(self.epochs):
-            x_weights = self.w @ X.T + self.b
-            y_pred = np.array([self._sigmoid(val) for val in x_weights])
+            x_weights = X @ self.w + self.b
+            # y_pred = np.array([self._sigmoid(val) for val in x_weights])
+            y_pred = self._sigmoid(x_weights)
 
-            loss = self._compute_loss(y, y_pred)
             dw, db = self._compute_gradients(X, y, y_pred)
-            pred_to_class = [1 if _y > 0.5 else 0 for _y in y_pred]
+            loss = self._compute_loss(y, y_pred)
+            pred_to_class = (y_pred >= 0.5).astype(int)
 
             self.train_accuracies.append(accuracy(y, pred_to_class))
             self.losses.append(loss)
@@ -94,7 +92,7 @@ class LogisticRegression(LinearRegression):
 
         """
         x_weights =  X @ self.w + self.b
-        prob = np.array([self._sigmoid(val) for val in x_weights])
-        return [1 if p > 0.5 else 0 for p in prob]
+        y_pred = self._sigmoid(x_weights)
+        return (y_pred >= 0.5).astype(int)
 
 
