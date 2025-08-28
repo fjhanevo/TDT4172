@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 from linear_regression import LinearRegression
 from logistic_regression import LogisticRegression, accuracy
 
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import PolynomialFeatures
+
 def mission1():
     CSV_DIR = "csv_files/"
     FILE = "mission1.csv"
@@ -38,22 +42,50 @@ def mission2():
 
     data = pd.read_csv(CSV_DIR+FILE)
 
-    train = data[data["split"] == "train"]
-    test = data[data["split"] == "test"]
+    X_data = data[["x0", "x1"]]
+    y_data = data["y"]
 
-    X_train = train[["x0", "x1"]].values
-    y_train = train["y"].values
-
-    X_test = test[["x0", "x1"]].values
-    y_test = test["y"].values
+    X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.2)
 
 
-    lr = LogisticRegression(learning_rate=0.01, epochs=100)
+    # training 
+    train_epochs = 30
+    learning_rate = 0.1
+    ### Output BEFORE scaling the data ### 
 
-    lr.fit(X_train, y_train)
-    y_pred = lr.predict(X_test)
+    lr0 = LogisticRegression(learning_rate=learning_rate, epochs=train_epochs)
 
-    print(accuracy(y_test, y_pred))
+    lr0.fit(X_train, y_train)
+    y_pred0 = lr0.predict(X_test)
+    print("Accuracy before scaling:", accuracy(y_test, y_pred0))
+    ###
+
+    ### Output AFTER scaling the data ### 
+    mm_scaler = MinMaxScaler()
+    X_train_scaled = mm_scaler.fit_transform(X_train)
+    X_test_scaled = mm_scaler.transform(X_test)
+
+    lr1 = LogisticRegression(learning_rate=learning_rate, epochs=train_epochs)
+    lr1.fit(X_train_scaled, y_train)
+    y_pred1 = lr1.predict(X_test_scaled)
+    print("Accuracy after scaling:", accuracy(y_test, y_pred1))
+
+    ### Output after Poly feat.
+    poly = PolynomialFeatures(degree=2)
+    X_train_poly = poly.fit_transform(X_train)
+    X_test_poly = poly.transform(X_test)
+
+    lr2 = LogisticRegression(learning_rate=learning_rate, epochs=train_epochs)
+
+    lr2.fit(X_train_poly, y_train)
+    y_pred2 = lr2.predict(X_test_poly)
+    print("Accuracy after poly:", accuracy(y_test, y_pred2))
+
+    """
+    Conclusion: 
+    Logisitic regression can not handle this dataset
+    """
+
 
 def main():
     # mission1()    
