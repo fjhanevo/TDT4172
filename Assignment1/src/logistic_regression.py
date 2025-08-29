@@ -95,4 +95,12 @@ class LogisticRegression(LinearRegression):
         y_pred = self._sigmoid(x_weights)
         return (y_pred >= 0.5).astype(int)
 
+    def predict_proba(self, X):
+        """
+        Returns probs. instead of predictions.
+        """
+        x_weights =  X @ self.w + self.b
+        prob = np.array([self._sigmoid(val) for val in x_weights])
+        return prob
+
 
