@@ -1,4 +1,5 @@
 /csv_files/
 /venv/
 *.ipynb
-__pychache__
+/figures/
+src/__pycache__/*
