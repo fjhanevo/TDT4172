@@ -6,8 +6,8 @@ from linear_regression import LinearRegression
 from logistic_regression import LogisticRegression, accuracy
 
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import roc_curve, auc
 
 def mission1():
     CSV_DIR = "csv_files/"
@@ -48,7 +48,7 @@ def mission2():
     X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.2)
 
 
-    # training 
+    ### Training 
     train_epochs = 150
     learning_rate = 0.08
 
@@ -61,7 +61,18 @@ def mission2():
 
     lr.fit(X_train_poly, y_train)
     y_pred = lr.predict(X_test_poly)
-    print("Accuracy:", accuracy(y_test, y_pred))
+    acc = accuracy(y_test, y_pred)
+    print("Accuracy:", acc)
+
+    ### ROC curve plot
+    y_prob = lr.predict_proba(X_test_poly)
+    fpr, tpr, _ = roc_curve(y_test, y_prob)
+    roc_auc = auc(fpr,tpr)
+    plt.plot(fpr, tpr, color="red", label=f"ROC curve (AUC = {roc_auc:.2f})")
+    plt.xlabel("FPR")
+    plt.ylabel("TPR")
+    plt.legend()
+    plt.show()
 
 def main():
     # mission1()    
