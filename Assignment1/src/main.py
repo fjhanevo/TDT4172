@@ -7,7 +7,8 @@ from logistic_regression import LogisticRegression, accuracy
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import PolynomialFeatures
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import accuracy_score, roc_curve, auc
+from sklearn.tree import DecisionTreeClassifier
 
 def mission1():
     CSV_DIR = "csv_files/"
@@ -74,9 +75,37 @@ def mission2():
     plt.legend()
     plt.show()
 
+def mission3():
+    CSV_DIR = "csv_files/"
+    FILE_TRAIN = "mission3_train.csv"
+    FILE_TEST = "mission3_test.csv"
+
+    train = pd.read_csv(CSV_DIR+FILE_TRAIN)
+    test = pd.read_csv(CSV_DIR+FILE_TEST)
+
+    X_train = train.drop("target", axis=1)
+    y_train = train["target"]
+
+    X_test = test.drop("target", axis=1)
+    y_test = test["target"]
+
+    # make decision tree
+    clf = DecisionTreeClassifier(max_depth=2, random_state=42)
+    clf.fit(X_train, y_train)
+
+    y_pred = clf.predict(X_test)
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+
+
+
+
+
+
+
 def main():
     # mission1()    
-    mission2()
+    # mission2()
+    mission3()
 
 if __name__ == '__main__':
     main()
