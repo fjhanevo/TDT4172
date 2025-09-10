@@ -75,6 +75,10 @@ def mission2():
     plt.legend()
     plt.show()
 
+
+def decrypt_feat(series):
+    return series.astype(int)%2
+
 def mission3():
     CSV_DIR = "csv_files/"
     FILE_TRAIN = "mission3_train.csv"
@@ -88,19 +92,43 @@ def mission3():
 
     X_test = test.drop("target", axis=1)
     y_test = test["target"]
+    accuracies = {}
+    for col in X_train.columns:
+        X_train_copy = X_train.copy()
+        X_test_copy = X_test.copy()
 
-    # make decision tree
-    clf = DecisionTreeClassifier(max_depth=2, random_state=42)
+        # decrypt the column
+        X_train_copy[col] = decrypt_feat(X_train_copy[col])
+        X_test_copy[col] = decrypt_feat(X_test_copy[col])
+
+        # train/test decision tree
+        clf = DecisionTreeClassifier(random_state=42)
+        clf.fit(X_train_copy, y_train)
+        acc = accuracy_score(y_test, clf.predict(X_test_copy))
+        accuracies[col] = acc
+
+    # find the best column
+    best_col = max(accuracies, key=accuracies.get)
+    best_acc = accuracies[best_col]
+
+    print("Correct datastream:", best_col, "with accuracy:", best_acc)
+
+    # train on best data 
+    X_train[best_col] = decrypt_feat(X_train[best_col])
+    X_test[best_col] = decrypt_feat(X_test[best_col])
+
+    clf = DecisionTreeClassifier(random_state=42, max_depth=3, min_samples_leaf=2, min_samples_split=5)
     clf.fit(X_train, y_train)
 
-    y_pred = clf.predict(X_test)
-    print("Accuracy:", accuracy_score(y_test, y_pred))
-
-
-
-
-
-
+    ### ROC curve plot
+    y_prob = clf.predict_proba(X_test)[:,1]
+    fpr, tpr, _ = roc_curve(y_test, y_prob)
+    roc_auc = auc(fpr, tpr)
+    plt.plot(fpr, tpr, color="red", label=f"ROC curve (AUC = {roc_auc:.2f})")
+    plt.xlabel("FPR")
+    plt.ylabel("TPR")
+    plt.legend()
+    plt.show()
 
 def main():
     # mission1()    
