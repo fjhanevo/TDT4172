@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 from linear_regression import LinearRegression
 from logistic_regression import LogisticRegression, accuracy
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.preprocessing import PolynomialFeatures
-from sklearn.metrics import accuracy_score, roc_curve, auc
+from sklearn.metrics import accuracy_score, roc_curve, auc, roc_auc_score
 from sklearn.tree import DecisionTreeClassifier
 
 def mission1():
@@ -76,8 +76,56 @@ def mission2():
     plt.show()
 
 
-def decrypt_feat(series):
-    return series.astype(int)%2
+def decrypt_stream(data):
+    return np.ceil(data).astype(int)%2
+
+def get_best_stream():
+    CSV_DIR = "csv_files/"
+    FILE_TRAIN = "mission3_train.csv"
+    FILE_TEST = "mission3_test.csv"
+
+    train = pd.read_csv(CSV_DIR+FILE_TRAIN)
+    test = pd.read_csv(CSV_DIR+FILE_TEST)
+
+    X_train_org = train.drop("target", axis=1)
+    y_train = train["target"]
+
+    X_test_org = test.drop("target", axis=1)
+    y_test = test["target"]
+
+    decryption_methods = {
+        'truncate': lambda s: s.astype(int)%2,
+        'floor': lambda s: np.floor(s).astype(int) % 2,
+        'ceil': lambda s: np.ceil(s).astype(int) % 2,
+        'round': lambda s: np.round(s).astype(int) % 2,
+    }
+
+    results = []
+
+    for col in X_train_org.columns:
+        for method, decrypt in decryption_methods.items():
+            X_train_copy = X_train_org.copy()
+            X_test_copy = X_test_org.copy()
+
+            X_train_copy[col] = decrypt(X_train_copy[col])
+            X_test_copy[col] = decrypt(X_test_copy[col])
+
+            model = DecisionTreeClassifier(random_state=42)
+            model.fit(X_train_copy, y_train)
+
+            y_prob = model.predict_proba(X_test_copy)[:, 1]
+            score = roc_auc_score(y_test, y_prob)
+
+            results.append({
+                'column': col,
+                'method': method,
+                'roc_auc': score
+            })
+    best_result = max(results, key=lambda x: x['roc_auc'])
+    print(best_result)
+
+
+
 
 def mission3():
     CSV_DIR = "csv_files/"
@@ -92,48 +140,71 @@ def mission3():
 
     X_test = test.drop("target", axis=1)
     y_test = test["target"]
-    accuracies = {}
+    col_scores = {}
+    print(train["data_stream_3"].head(10))
+    print(decrypt_stream(train["data_stream_3"].head(10)))
     for col in X_train.columns:
         X_train_copy = X_train.copy()
         X_test_copy = X_test.copy()
 
         # decrypt the column
-        X_train_copy[col] = decrypt_feat(X_train_copy[col])
-        X_test_copy[col] = decrypt_feat(X_test_copy[col])
+        X_train_copy[col] = decrypt_stream(X_train_copy[col])
+        X_test_copy[col] = decrypt_stream(X_test_copy[col])
 
-        # train/test decision tree
+        # train a simple model to find hte correct data stream
         clf = DecisionTreeClassifier(random_state=42)
         clf.fit(X_train_copy, y_train)
-        acc = accuracy_score(y_test, clf.predict(X_test_copy))
-        accuracies[col] = acc
 
+        # use predict_proba and roc_auc_score to find correct data stream
+        y_prob = clf.predict_proba(X_test_copy)[:,1]
+        score = roc_auc_score(y_test, y_prob)
+        col_scores[col] = score
+        print(f"- {col}: ROC AUC = {score:.4f}")
+        
     # find the best column
-    best_col = max(accuracies, key=accuracies.get)
-    best_acc = accuracies[best_col]
+    best_col = max(col_scores, key=col_scores.get)
 
-    print("Correct datastream:", best_col, "with accuracy:", best_acc)
-
-    # train on best data 
-    X_train[best_col] = decrypt_feat(X_train[best_col])
-    X_test[best_col] = decrypt_feat(X_test[best_col])
-
-    clf = DecisionTreeClassifier(random_state=42, max_depth=3, min_samples_leaf=2, min_samples_split=5)
-    clf.fit(X_train, y_train)
-
-    ### ROC curve plot
-    y_prob = clf.predict_proba(X_test)[:,1]
-    fpr, tpr, _ = roc_curve(y_test, y_prob)
-    roc_auc = auc(fpr, tpr)
-    plt.plot(fpr, tpr, color="red", label=f"ROC curve (AUC = {roc_auc:.2f})")
-    plt.xlabel("FPR")
-    plt.ylabel("TPR")
-    plt.legend()
-    plt.show()
+    # print(f"Best data stream: {best_col} with score: {col_scores[best_col]:.4f}")
+    #
+    # # train on best data 
+    # X_train[best_col] = decrypt_stream(X_train[best_col])
+    # X_test[best_col] = decrypt_stream(X_test[best_col])
+    #
+    # # optimize params with gridsearchCV
+    # params = {
+    #     'criterion' : ['gini', 'entropy', 'log_loss'],
+    #     'max_depth' : [2,4,6,7,8, None],
+    #     'min_samples_leaf': [1,5,10,15],
+    #     'min_samples_split' : [2,10,20]
+    # }
+    #
+    # # find optimal parameters
+    # grid_search = GridSearchCV(
+    #     estimator=DecisionTreeClassifier(random_state=42),
+    #     param_grid=params,
+    #     cv=5,
+    #     scoring='roc_auc',
+    #     n_jobs=-1
+    # )
+    # grid_search.fit(X_train, y_train)
+    # print(f"Best params: {grid_search.best_params_}")
+    # best_clf = grid_search.best_estimator_
+    # y_prob = best_clf.predict_proba(X_test)[:,1]
+    #
+    # ### ROC curve plot
+    # fpr, tpr, _ = roc_curve(y_test, y_prob)
+    # roc_auc = auc(fpr, tpr)
+    # plt.plot(fpr, tpr, color="red", label=f"ROC curve (AUC = {roc_auc:.2f})")
+    # plt.xlabel("FPR")
+    # plt.ylabel("TPR")
+    # plt.legend()
+    # plt.show()
 
 def main():
     # mission1()    
     # mission2()
-    mission3()
+    # mission3()
+    get_best_stream()
 
 if __name__ == '__main__':
     main()
