@@ -18,13 +18,13 @@ class LearningRateScheduler:
         if step < self.warmup_steps:
             
             # gradually increase the LR
-            lr = self.lr_min + (self.lr_max - self.lr_min) * (step/self.warmup_steps)
+            lr = self.lr_min + (self.lr_max - self.lr_min) * (step / self.warmup_steps)
         else:
             # Cosine decay
             decay_steps = self.total_steps - self.warmup_steps
             decay_step = step - self.warmup_steps
             cosine_decay = 0.5 * (1 + np.cos(np.pi * decay_step / decay_steps))
-            lr = self.lr_max + (self.lr_max - self.lr_min) * cosine_decay
+            lr = self.lr_min + (self.lr_max - self.lr_min) * cosine_decay
             
         return lr
 
