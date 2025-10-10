@@ -1,12 +1,11 @@
 import numpy as np
 import tensorflow as tf
 
-
 class LearningRateScheduler(tf.keras.optimizers.schedules.LearningRateSchedule):
 
     """
     Custom learning rate scheduler implementation using warmup and cosine decay.
-    Inherits from LearningRateSchedule so it can be used in the optimizer
+    Inherits from LearningRateSchedule so it can be used in the optimizer.
     """
     def __init__(self, lr_min=1e-5, lr_max=1e-3, warmup_steps=5, total_steps=100):
         self.lr_min = tf.cast(lr_min, tf.float32)
@@ -31,6 +30,4 @@ class LearningRateScheduler(tf.keras.optimizers.schedules.LearningRateSchedule):
             return self.lr_min + (self.lr_max - self.lr_min) * decay
             
         return tf.cond(is_warmup, true_fn=warmup, false_fn=cosine_decay)
-
-
 
